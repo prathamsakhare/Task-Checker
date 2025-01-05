@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Loader Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        .form-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 500px;
+        }
+
+        .form-container input {
+            margin-right: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+        }
+
+        .form-container button {
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .form-container button:hover {
+            background-color: #0056b3;
+        }
+
+        #taskList {
+            width: 400px;
+        }
+
+        .task-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            height: 50px;
+            background: #ffffff;
+            padding: 5px 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-row .task-name {
+            flex: 2;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .task-row .loader-container {
+            flex: 4;
+            position: relative;
+            height: 30px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: lightgreen;
+            transition: width 0.3s;
+        }
+
+        .loader-text {
+            position: relative;
+            z-index: 1;
+            font-size: 14px;
+            color: black;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        .task-row button {
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .task-row button:hover {
+            background-color: #0056b3;
+        }
+
+        .reset-button {
+            background-color: red;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .reset-button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <input type="text" id="taskName" placeholder="Task Name" />
+        <input type="number" id="taskSteps" placeholder="Number of Steps" min="1" />
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div id="taskList"></div>
+
+    <script>
+        const taskList = document.getElementById('taskList');
+
+        function addTask() {
+            const taskNameInput = document.getElementById('taskName');
+            const taskStepsInput = document.getElementById('taskSteps');
+
+            const taskName = taskNameInput.value.trim();
+            const taskSteps = parseInt(taskStepsInput.value);
+
+            if (!taskName || isNaN(taskSteps) || taskSteps <= 0) {
+                alert('Please enter a valid task name and number of steps.');
+                return;
+            }
+
+            const taskRow = document.createElement('div');
+            taskRow.className = 'task-row';
+            taskRow.dataset.steps = taskSteps;
+            taskRow.dataset.current = 0;
+
+            const minusButton = document.createElement('button');
+            minusButton.textContent = '-';
+            minusButton.onclick = () => updateLoader(taskRow, -1);
+            taskRow.appendChild(minusButton);
+
+            const loaderContainer = document.createElement('div');
+            loaderContainer.className = 'loader-container';
+
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            loader.style.width = '0%';
+
+            const loaderText = document.createElement('div');
+            loaderText.className = 'loader-text';
+            loaderText.textContent = '0';
+
+            loaderContainer.appendChild(loader);
+            loaderContainer.appendChild(loaderText);
+
+            taskRow.appendChild(loaderContainer);
+
+            const plusButton = document.createElement('button');
+            plusButton.textContent = '+';
+            plusButton.onclick = () => updateLoader(taskRow, 1);
+            taskRow.appendChild(plusButton);
+
+            const resetButton = document.createElement('button');
+            resetButton.textContent = 'Reset';
+            resetButton.className = 'reset-button';
+            resetButton.onclick = () => resetLoader(taskRow);
+            taskRow.appendChild(resetButton);
+
+            const taskNameElement = document.createElement('div');
+            taskNameElement.className = 'task-name';
+            taskNameElement.textContent = taskName;
+            taskRow.insertBefore(taskNameElement, loaderContainer);
+
+            taskList.appendChild(taskRow);
+
+            taskNameInput.value = '';
+            taskStepsInput.value = '';
+        }
+
+        function updateLoader(taskRow, change) {
+            const steps = parseInt(taskRow.dataset.steps);
+            let current = parseInt(taskRow.dataset.current);
+
+            current = Math.min(steps, Math.max(0, current + change));
+            taskRow.dataset.current = current;
+
+            const percentage = (current / steps) * 100;
+            const loader = taskRow.querySelector('.loader');
+            const loaderText = taskRow.querySelector('.loader-text');
+            loader.style.width = percentage + '%';
+            loaderText.textContent = current;
+        }
+
+        function resetLoader(taskRow) {
+            taskRow.dataset.current = 0;
+            const loader = taskRow.querySelector('.loader');
+            const loaderText = taskRow.querySelector('.loader-text');
+            loader.style.width = '0%';
+            loaderText.textContent = '0';
+        }
+    </script>
+</body>
+</html>
