@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Previous head content remains the same until the mobile media query -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Loader Tool</title>
     <style>
+        /* All previous styles remain the same until the media query */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -13,7 +15,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #f9f9f9;
         }
 
@@ -26,7 +28,8 @@
             background: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 500px;
+            width: 50%;
+            max-width: 80%;
         }
 
         .form-container input {
@@ -35,6 +38,8 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             flex: 1;
+            max-width: 90%;
+            width: 90%;
         }
 
         .form-container button {
@@ -45,6 +50,7 @@
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
+            
         }
 
         .form-container button:hover {
@@ -52,29 +58,50 @@
         }
 
         #taskList {
-            width: 520px;
+            width: 50%;
+            max-width: 90%;
         }
 
         .task-row {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            height: 50px;
+            flex-direction: column;
+            margin-bottom: 20px;
             background: #ffffff;
-            padding: 5px 10px;
+            padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 500px;
         }
 
-        .task-row .task-name {
-            flex: 2;
+        .task-name {
             text-align: center;
             font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
 
-        .task-row .loader-container {
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 50px;
+        }
+
+        .controls-primary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .controls-secondary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .loader-container {
             flex: 4;
             position: relative;
             height: 30px;
@@ -113,6 +140,8 @@
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
+            white-space: nowrap;
+            margin-right: 2px;
         }
 
         .task-row button:hover {
@@ -122,25 +151,146 @@
         .reset-button {
             background-color: red;
             color: white;
-            margin-left: 10px;
         }
 
         .reset-button:hover {
             background-color: darkred;
         }
+
+        .delete-button {
+            background-color: darkred;
+            color: white;
+        }
+
+        .delete-button:hover {
+            background-color: red;
+        }
+
+        .edit-button {
+            background-color: orange;
+            color: white;
+        }
+
+        .edit-button:hover {
+            background-color: darkorange;
+        }
+
+        .set-count-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .set-count-button:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 768px) {
+            .form-container{
+                display: flex;
+                flex-direction: column;
+            }
+            .form-container input, button{
+                margin-top: 10px;
+            }
+            .form-container, #taskList {
+                width: 95%;
+                padding: 10px 5px;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .controls-primary, .controls-secondary {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .loader-container {
+                margin: 0 5px;
+            }
+
+            .task-row button {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="form-container">
-        <input type="text" id="taskName" placeholder="Task Name" />
-        <input type="number" id="taskSteps" placeholder="Number of Steps" min="1" />
+        <input type="text" id="taskName" placeholder="Project Name" />
+        <input type="number" id="taskSteps" placeholder="Number of Tasks" min="1" />
         <button onclick="addTask()">Add Task</button>
     </div>
 
     <div id="taskList"></div>
 
     <script>
-        const taskList = document.getElementById('taskList');
+        // Previous DB-related functions remain the same
+        let db;
+
+        window.onload = function() {
+            let request = indexedDB.open("TaskDB", 1);
+
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                let objectStore = db.createObjectStore("tasks", { keyPath: "id", autoIncrement: true });
+            };
+
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                loadTasks();
+            };
+
+            request.onerror = function(event) {
+                console.error("Error opening IndexedDB", event);
+            };
+        };
+
+        // Previous DB functions remain the same
+        function saveTask(task) {
+            let transaction = db.transaction(["tasks"], "readwrite");
+            let objectStore = transaction.objectStore("tasks");
+            objectStore.add(task);
+        }
+
+        function updateTaskInDB(id, updates) {
+            const transaction = db.transaction(["tasks"], "readwrite");
+            const objectStore = transaction.objectStore("tasks");
+            const request = objectStore.get(Number(id));
+
+            request.onsuccess = function() {
+                const task = request.result;
+                Object.assign(task, updates);
+                objectStore.put(task);
+            };
+
+            request.onerror = function() {
+                console.error("Error updating task in IndexedDB.");
+            };
+        }
+
+        function deleteTaskFromDB(id) {
+            const transaction = db.transaction(["tasks"], "readwrite");
+            const objectStore = transaction.objectStore("tasks");
+            objectStore.delete(Number(id));
+        }
+
+        function loadTasks() {
+            let transaction = db.transaction(["tasks"], "readonly");
+            let objectStore = transaction.objectStore("tasks");
+            let request = objectStore.openCursor();
+
+            request.onsuccess = function(event) {
+                let cursor = event.target.result;
+                if (cursor) {
+                    createTaskRow(cursor.value);
+                    cursor.continue();
+                }
+            };
+        }
 
         function addTask() {
             const taskNameInput = document.getElementById('taskName');
@@ -150,61 +300,130 @@
             const taskSteps = parseInt(taskStepsInput.value);
 
             if (!taskName || isNaN(taskSteps) || taskSteps <= 0) {
-                alert('Please enter a valid task name and number of steps.');
+                alert('Please enter a valid project name and number of tasks.');
                 return;
             }
 
+            const task = {
+                name: taskName,
+                steps: taskSteps,
+                current: 0
+            };
+
+            saveTask(task);
+            createTaskRow(task);
+
+            taskNameInput.value = '';
+            taskStepsInput.value = '';
+        }
+
+        function createTaskRow(task) {
             const taskRow = document.createElement('div');
             taskRow.className = 'task-row';
-            taskRow.dataset.steps = taskSteps;
-            taskRow.dataset.current = 0;
+            taskRow.dataset.steps = task.steps;
+            taskRow.dataset.current = task.current;
+            taskRow.dataset.id = task.id;
+
+            const taskNameElement = document.createElement('div');
+            taskNameElement.className = 'task-name';
+            taskNameElement.textContent = task.name;
+            taskRow.appendChild(taskNameElement);
+
+            const controlsRow = document.createElement('div');
+            controlsRow.className = 'controls-row';
+
+            // Primary controls (progress related)
+            const controlsPrimary = document.createElement('div');
+            controlsPrimary.className = 'controls-primary';
 
             const minusButton = document.createElement('button');
             minusButton.textContent = '-';
             minusButton.onclick = () => updateLoader(taskRow, -1);
-            taskRow.appendChild(minusButton);
+            controlsPrimary.appendChild(minusButton);
 
             const loaderContainer = document.createElement('div');
             loaderContainer.className = 'loader-container';
 
             const loader = document.createElement('div');
             loader.className = 'loader';
-            loader.style.width = '0%';
+            loader.style.width = (task.current / task.steps) * 100 + '%';
 
             const loaderText = document.createElement('div');
             loaderText.className = 'loader-text';
-            loaderText.textContent = '0';
+            loaderText.textContent = task.current;
 
             loaderContainer.appendChild(loader);
             loaderContainer.appendChild(loaderText);
-
-            taskRow.appendChild(loaderContainer);
+            controlsPrimary.appendChild(loaderContainer);
 
             const plusButton = document.createElement('button');
             plusButton.textContent = '+';
             plusButton.onclick = () => updateLoader(taskRow, 1);
-            taskRow.appendChild(plusButton);
+            controlsPrimary.appendChild(plusButton);
+
+            // Secondary controls (action buttons)
+            const controlsSecondary = document.createElement('div');
+            controlsSecondary.className = 'controls-secondary';
+
+            const setCountButton = document.createElement('button');
+            setCountButton.textContent = 'Set Count';
+            setCountButton.className = 'set-count-button';
+            setCountButton.onclick = () => setCustomCount(taskRow);
+            controlsSecondary.appendChild(setCountButton);
 
             const resetButton = document.createElement('button');
             resetButton.textContent = 'Reset';
             resetButton.className = 'reset-button';
             resetButton.onclick = () => resetLoader(taskRow);
-            taskRow.appendChild(resetButton);
+            controlsSecondary.appendChild(resetButton);
 
-            const taskNameElement = document.createElement('div');
-            taskNameElement.className = 'task-name';
-            taskNameElement.textContent = taskName;
-            taskRow.insertBefore(taskNameElement, loaderContainer);
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-button';
+            editButton.textContent = 'Edit';
+            editButton.onclick = () => editTask(taskRow);
+            controlsSecondary.appendChild(editButton);
 
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteTask(taskRow);
+            controlsSecondary.appendChild(deleteButton);
+
+            controlsRow.appendChild(controlsPrimary);
+            controlsRow.appendChild(controlsSecondary);
+            taskRow.appendChild(controlsRow);
             taskList.appendChild(taskRow);
+        }
 
-            taskNameInput.value = '';
-            taskStepsInput.value = '';
+        // Previous task manipulation functions remain the same
+        function setCustomCount(taskRow) {
+            const steps = parseInt(taskRow.dataset.steps);
+            const customCount = prompt('Enter custom count (0-' + steps + '):');
+            
+            if (customCount === null) return;
+
+            const count = parseInt(customCount);
+            if (isNaN(count) || count < 0 || count > steps) {
+                alert('Please enter a valid number between 0 and ' + steps);
+                return;
+            }
+
+            const id = taskRow.dataset.id;
+            taskRow.dataset.current = count;
+
+            const percentage = (count / steps) * 100;
+            const loader = taskRow.querySelector('.loader');
+            const loaderText = taskRow.querySelector('.loader-text');
+            loader.style.width = percentage + '%';
+            loaderText.textContent = count;
+
+            updateTaskInDB(id, { current: count });
         }
 
         function updateLoader(taskRow, change) {
             const steps = parseInt(taskRow.dataset.steps);
             let current = parseInt(taskRow.dataset.current);
+            const id = taskRow.dataset.id;
 
             current = Math.min(steps, Math.max(0, current + change));
             taskRow.dataset.current = current;
@@ -214,14 +433,43 @@
             const loaderText = taskRow.querySelector('.loader-text');
             loader.style.width = percentage + '%';
             loaderText.textContent = current;
+
+            updateTaskInDB(id, { current });
         }
 
         function resetLoader(taskRow) {
+            const id = taskRow.dataset.id;
             taskRow.dataset.current = 0;
+
             const loader = taskRow.querySelector('.loader');
             const loaderText = taskRow.querySelector('.loader-text');
             loader.style.width = '0%';
             loaderText.textContent = '0';
+
+            updateTaskInDB(id, { current: 0 });
+        }
+
+        function deleteTask(taskRow) {
+            const id = taskRow.dataset.id;
+            taskRow.remove();
+            deleteTaskFromDB(id);
+        }
+
+        function editTask(taskRow) {
+            const id = taskRow.dataset.id;
+            const taskNameElement = taskRow.querySelector('.task-name');
+            const newTaskName = prompt('Edit Project Name:', taskNameElement.textContent);
+            const newTaskSteps = prompt('Edit Task Count:', taskRow.dataset.steps);
+
+            if (newTaskName && newTaskSteps && !isNaN(newTaskSteps)) {
+                taskNameElement.textContent = newTaskName;
+                taskRow.dataset.steps = newTaskSteps;
+
+                updateTaskInDB(id, {
+                    name: newTaskName,
+                    steps: parseInt(newTaskSteps)
+                });
+            }
         }
     </script>
 </body>
