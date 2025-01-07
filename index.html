@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <script src="./daily.js" defer></script>
     <title>Task Loader Tool</title>
     <style>
         :root {
@@ -228,9 +229,12 @@
         <input type="number" id="taskSteps" placeholder="Number of Tasks" min="1" />
         <button onclick="addTask()">Add Task</button>
         <button id="themeToggle" onclick="toggleTheme()">Toggle Theme</button>
+        <!-- TODO : Relate Daily tasks to main tasks -->
+        <!-- <a href="./daily.html"><button>Daily Tasks</button></a> -->
     </div>
 
     <div id="taskList"></div>
+    <div style="margin-bottom: 20px;"></div>
 
     <script>
         let db;
