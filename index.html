@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Loader Tool</title>
     <style>
-        /* All previous styles remain the same until the media query */
         :root {
             --background-color: #f9f9f9;
             --text-color: #000;
@@ -13,9 +12,11 @@
             --secondary-color: #0056b3;
             --accent-color: orange;
             --loader-background: lightgreen;
-            --task-row-bg: #ffffff;
+            --card-bg: #ffffff;
             --box-shadow: rgba(0, 0, 0, 0.1);
+            --loader-color : #1e1e1e;
         }
+
         body.dark-mode {
             --background-color: #121212;
             --text-color: #e0e0e0;
@@ -23,18 +24,15 @@
             --secondary-color: #4682b4;
             --accent-color: #ffa500;
             --loader-background: #32cd32;
-            --task-row-bg: #1e1e1e;
+            --card-bg: #1e1e1e;
             --box-shadow: rgba(255, 255, 255, 0.1);
+            --loader-color : #1e1e1e;
         }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
             background-color: var(--background-color);
             color: var(--text-color);
             transition: background-color 0.3s, color 0.3s;
@@ -42,29 +40,26 @@
 
         .form-container {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: var(--task-row-bg);
+            gap: 10px;
+            padding: 15px;
+            margin: 20px auto;
+            background: var(--card-bg);
             border-radius: 10px;
             box-shadow: 0 4px 6px var(--box-shadow);
-            width: 50%;
-            max-width: 80%;
-            margin-top: 20px;
-            transition: background-color 0.3s, box-shadow 0.3s;
+            width: 90%;
+            /* max-width: 600px; */
         }
 
         .form-container input {
-            margin-right: 10px;
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 5px;
-            flex: 1;
-            max-width: 90%;
-            width: 90%;
+            flex: 1 1 100%;
+            max-width: calc(40% - 10px);
             color: var(--text-color);
-            background-color: var(--task-row-bg);
+            background-color: var(--card-bg);
             transition: background-color 0.3s, color 0.3s;
         }
 
@@ -81,25 +76,31 @@
         .form-container button:hover {
             background-color: var(--secondary-color);
         }
+
         #themeToggle {
-            margin-left: 10px;
             background-color: var(--accent-color);
-            color: white;
         }
 
         #taskList {
-            width: 50%;
-            max-width: 90%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            margin: 0 auto;
+            max-width: 1200px;
         }
 
-        .task-row {
+        .task-card {
             display: flex;
             flex-direction: column;
-            margin-bottom: 20px;
-            background: var(--task-row-bg);
+            gap: 10px;
+            background: var(--card-bg);
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 4px 6px var(--box-shadow);
+            width: 90%;
+            max-width: 300px;
             transition: background-color 0.3s, box-shadow 0.3s;
         }
 
@@ -107,40 +108,31 @@
             text-align: center;
             font-weight: bold;
             font-size: 1.2em;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
             border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
             color: var(--text-color);
         }
 
-        .controls-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            min-height: 50px;
+        .count-button {
+            background-color: #007bff;
+            border: none;
+            border-radius: 2px;
+            color: white;
         }
 
-        .controls-primary {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-        }
-
-        .controls-secondary {
+        .loader-row {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
         .loader-container {
-            flex: 4;
+            flex-grow: 1;
             position: relative;
             height: 30px;
             background-color: #f0f0f0;
             border-radius: 5px;
             overflow: hidden;
-            margin: 0 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -157,100 +149,75 @@
 
         .loader-text {
             position: relative;
-            z-index: 1;
+            z-index: 10000;
             font-size: 14px;
-            color: black;
             font-weight: bold;
-            pointer-events: none;
+            color: var(--loader-color);
         }
 
-        .task-row button {
-            padding: 8px;
+        .button-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 5px;
+        }
+
+        .button-row button {
+            flex: 1;
+            padding: 5px;
             border: none;
             border-radius: 5px;
             background-color: #007bff;
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
-            white-space: nowrap;
-            margin-right: 2px;
         }
 
-        .task-row button:hover {
+        .button-row button:hover {
             background-color: #0056b3;
         }
 
         .reset-button {
             background-color: red;
-            color: white;
+        }
+
+        .button-row .set-count-button{
+            background-color: #32cd32;
         }
 
         .reset-button:hover {
             background-color: darkred;
         }
 
-        .delete-button {
-            background-color: darkred;
-            color: white;
-        }
-
-        .delete-button:hover {
-            background-color: red;
-        }
-
         .edit-button {
             background-color: orange;
-            color: white;
         }
 
         .edit-button:hover {
             background-color: darkorange;
         }
 
-        .set-count-button {
-            background-color: #28a745;
+        .button-row .delete-button {
+            background-color: red;
             color: white;
+            
         }
 
-        .set-count-button:hover {
-            background-color: #218838;
+        .delete-button:hover {
+            background-color: darkred;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
             .form-container {
-                display: flex;
                 flex-direction: column;
+                gap: 15px;
             }
 
-            .form-container input,
-            button {
-                margin-top: 10px;
+            .form-container input {
+                max-width: 100%;
             }
 
-            .form-container,
             #taskList {
-                width: 95%;
-                padding: 10px 5px;
-            }
-
-            .controls-row {
-                flex-direction: column;
                 gap: 10px;
-            }
-
-            .controls-primary,
-            .controls-secondary {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .loader-container {
-                margin: 0 5px;
-            }
-
-            .task-row button {
-                padding: 8px;
-                font-size: 0.9em;
             }
         }
     </style>
@@ -361,80 +328,77 @@
         }
 
         function createTaskRow(task) {
-            const taskRow = document.createElement("div");
-            taskRow.className = "task-row";
-            taskRow.dataset.steps = task.steps;
-            taskRow.dataset.current = task.current;
-            taskRow.dataset.id = task.id;
-            taskRow.draggable = true; // Enable dragging
+            const taskCard = document.createElement("div");
+            taskCard.className = "task-card";
+            taskCard.dataset.steps = task.steps;
+            taskCard.dataset.current = task.current;
+            taskCard.dataset.id = task.id;
 
-            const taskNameElement = document.createElement("div");
-            taskNameElement.className = "task-name";
-            taskNameElement.textContent = task.name;
-            taskRow.appendChild(taskNameElement);
+            const taskName = document.createElement("div");
+            taskName.className = "task-name";
+            taskName.textContent = task.name;
+            taskCard.appendChild(taskName);
 
-            const controlsRow = document.createElement("div");
-            controlsRow.className = "controls-row";
-
-            const controlsPrimary = document.createElement("div");
-            controlsPrimary.className = "controls-primary";
+            const loaderRow = document.createElement("div");
+            loaderRow.className = "loader-row";
 
             const minusButton = document.createElement("button");
             minusButton.textContent = "-";
-            minusButton.onclick = () => updateLoader(taskRow, -1);
-            controlsPrimary.appendChild(minusButton);
+            minusButton.className = "count-button"
+            minusButton.onclick = () => updateLoader(taskCard, -1);
+
+            loaderRow.appendChild(minusButton);
 
             const loaderContainer = document.createElement("div");
             loaderContainer.className = "loader-container";
-
             const loader = document.createElement("div");
             loader.className = "loader";
             loader.style.width = (task.current / task.steps) * 100 + "%";
-
             const loaderText = document.createElement("div");
             loaderText.className = "loader-text";
             loaderText.textContent = task.current;
-
             loaderContainer.appendChild(loader);
             loaderContainer.appendChild(loaderText);
-            controlsPrimary.appendChild(loaderContainer);
+            loaderRow.appendChild(loaderContainer);
 
             const plusButton = document.createElement("button");
             plusButton.textContent = "+";
-            plusButton.onclick = () => updateLoader(taskRow, 1);
-            controlsPrimary.appendChild(plusButton);
+            plusButton.className = "count-button"
+            plusButton.onclick = () => updateLoader(taskCard, 1);
+            loaderRow.appendChild(plusButton);
 
-            const controlsSecondary = document.createElement("div");
-            controlsSecondary.className = "controls-secondary";
+            taskCard.appendChild(loaderRow);
+
+            const actionRow = document.createElement("div");
+            actionRow.className = "button-row";
 
             const setCountButton = document.createElement("button");
             setCountButton.textContent = "Set Count";
             setCountButton.className = "set-count-button";
-            setCountButton.onclick = () => setCustomCount(taskRow);
-            controlsSecondary.appendChild(setCountButton);
+            setCountButton.onclick = () => setCustomCount(taskCard);
+            actionRow.appendChild(setCountButton);
 
             const resetButton = document.createElement("button");
             resetButton.textContent = "Reset";
             resetButton.className = "reset-button";
-            resetButton.onclick = () => resetLoader(taskRow);
-            controlsSecondary.appendChild(resetButton);
+            resetButton.onclick = () => resetLoader(taskCard);
+            actionRow.appendChild(resetButton);
 
             const editButton = document.createElement("button");
-            editButton.className = "edit-button";
             editButton.textContent = "Edit";
-            editButton.onclick = () => editTask(taskRow);
-            controlsSecondary.appendChild(editButton);
+            editButton.className = "edit-button";
+            editButton.onclick = () => editTask(taskCard);
+            actionRow.appendChild(editButton);
 
             const deleteButton = document.createElement("button");
-            deleteButton.className = "delete-button";
             deleteButton.textContent = "Delete";
-            deleteButton.onclick = () => deleteTask(taskRow);
-            controlsSecondary.appendChild(deleteButton);
+            deleteButton.className = "delete-button";
+            deleteButton.onclick = () => deleteTask(taskCard);
+            actionRow.appendChild(deleteButton);
 
-            controlsRow.appendChild(controlsPrimary);
-            controlsRow.appendChild(controlsSecondary);
-            taskRow.appendChild(controlsRow);
-            taskList.appendChild(taskRow);
+            taskCard.appendChild(actionRow);
+
+            document.getElementById("taskList").appendChild(taskCard);
         }
 
         function updateLoader(taskRow, change) {
